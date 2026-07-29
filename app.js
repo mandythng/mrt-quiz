@@ -655,14 +655,12 @@ class MRTQuizGame {
           <span class="powerup-card-title">${card.title}</span>
           <span class="powerup-card-desc">${card.desc}</span>
           <span class="claimed-badge"><i class="fa-solid fa-ban"></i> EXHAUSTED (Claimed by ${card.claimedBy})</span>
-          <button disabled class="btn btn-sm btn-secondary" style="margin-top:0.4rem; opacity:0.6;">🚫 Exhausted / Used</button>
         `;
       } else if (pending > 0) {
         item.className = "powerup-card-item selectable";
         item.innerHTML = `
           <span class="powerup-card-title" style="color:#4ade80;">✨ ${card.title}</span>
           <span class="powerup-card-desc">${card.desc}</span>
-          <span class="claimed-badge" style="background:rgba(34,197,94,0.2); color:#4ade80; border-color:rgba(34,197,94,0.4);"><i class="fa-solid fa-sparkles"></i> AVAILABLE TO CLAIM</span>
           <button class="btn btn-sm btn-success" style="margin-top:0.4rem;"><i class="fa-solid fa-hand-pointer"></i> Claim Card</button>
         `;
         item.addEventListener("click", () => this.claimAndExecuteCard(card));
@@ -672,7 +670,6 @@ class MRTQuizGame {
           <span class="powerup-card-title">${card.title}</span>
           <span class="powerup-card-desc">${card.desc}</span>
           <span class="claimed-badge" style="background:rgba(255,255,255,0.05); color:var(--text-secondary); border-color:rgba(255,255,255,0.1);"><i class="fa-solid fa-lock"></i> Unclaimed</span>
-          <button disabled class="btn btn-sm btn-secondary" style="margin-top:0.4rem; opacity:0.5;">🔒 Complete Line to Claim</button>
         `;
       }
 
