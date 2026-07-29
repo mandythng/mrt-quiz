@@ -1108,9 +1108,11 @@ class RoomSyncEngine {
   constructor(game) {
     this.game = game;
     this.peer = null;
+    this.mqttClient = null;
     this.connections = [];
     this.roomCode = null;
     this.broadcastChannel = null;
+    this.myClientId = Math.random().toString(36).substring(2, 9);
   }
 
   initRoom(roomCode) {
@@ -1124,15 +1126,54 @@ class RoomSyncEngine {
       this.broadcastChannel.onmessage = (event) => this.handleMessage(event.data);
     }
 
-    // 2. PeerJS WebRTC P2P Room Sync
+    // 2. MQTT over WebSocket Sync (Guarantees multi-device / multi-laptop room sync through firewalls)
+    if (typeof mqtt !== 'undefined') {
+      try {
+        if (this.mqttClient) this.mqttClient.end();
+        this.mqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt', {
+          clientId: `sg_mrt_${this.myClientId}`,
+          keepalive: 30,
+          clean: true,
+          reconnectPeriod: 2000
+        });
+
+        const topic = `shopee/sg-mrt-quiz/room/${this.roomCode}`;
+
+        this.mqttClient.on('connect', () => {
+          console.log(`Connected to MQTT WebSocket broker for Room #${this.roomCode}`);
+          this.mqttClient.subscribe(topic);
+          // Broadcast presence & initial score on connect
+          this.broadcast({
+            type: 'TEAM_SCORE_UPDATE',
+            teamName: this.game.teamName,
+            score: this.game.calculateCurrentScore(),
+            members: this.game.teamMembers,
+            isGoBig: this.game.isGoBigActive,
+            senderId: this.myClientId
+          });
+        });
+
+        this.mqttClient.on('message', (t, message) => {
+          try {
+            const packet = JSON.parse(message.toString());
+            if (packet.senderId !== this.myClientId) {
+              this.handleMessage(packet);
+            }
+          } catch(e){}
+        });
+      } catch (e) {
+        console.warn("MQTT init fallback:", e);
+      }
+    }
+
+    // 3. PeerJS WebRTC P2P Fallback
     if (typeof Peer !== 'undefined') {
       try {
-        const peerId = `sg-mrt-peer-${this.roomCode}-${Math.random().toString(36).substring(2, 7)}`;
+        const peerId = `sg-mrt-peer-${this.roomCode}-${this.myClientId}`;
         if (this.peer) this.peer.destroy();
-        this.peer = new Peer(peerId, { debug: 1 });
+        this.peer = new Peer(peerId, { debug: 0 });
 
         this.peer.on('open', (id) => {
-          console.log(`Connected to PeerJS server with ID: ${id}`);
           const hostId = `sg-mrt-host-${this.roomCode}`;
           const conn = this.peer.connect(hostId);
           this.setupConnection(conn);
@@ -1143,12 +1184,10 @@ class RoomSyncEngine {
         });
 
         try {
-          const hostPeer = new Peer(`sg-mrt-host-${this.roomCode}`, { debug: 1 });
+          const hostPeer = new Peer(`sg-mrt-host-${this.roomCode}`, { debug: 0 });
           hostPeer.on('connection', (conn) => this.setupConnection(conn));
         } catch(e){}
-      } catch (e) {
-        console.warn("PeerJS init note:", e);
-      }
+      } catch (e) {}
     }
 
     this.updateRoomUIConnected();
@@ -1188,9 +1227,19 @@ class RoomSyncEngine {
 
   broadcast(packet) {
     if (!packet) return;
+    packet.senderId = this.myClientId;
+
     if (this.broadcastChannel) {
       try { this.broadcastChannel.postMessage(packet); } catch(e){}
     }
+
+    if (this.mqttClient && this.mqttClient.connected) {
+      try {
+        const topic = `shopee/sg-mrt-quiz/room/${this.roomCode}`;
+        this.mqttClient.publish(topic, JSON.stringify(packet));
+      } catch(e){}
+    }
+
     this.connections.forEach(conn => {
       try { if (conn.open) conn.send(packet); } catch(e){}
     });
@@ -1203,6 +1252,7 @@ class RoomSyncEngine {
       case 'TEAM_SCORE_UPDATE':
         if (packet.teamName && packet.teamName !== this.game.teamName) {
           let player = this.game.players.find(p => p.name === packet.teamName);
+          let isNewPlayer = !player;
           if (!player) {
             player = {
               id: `p-${Math.random().toString(36).substring(2, 7)}`,
@@ -1219,6 +1269,17 @@ class RoomSyncEngine {
             if (packet.members) player.members = packet.members;
           }
           this.game.renderLeaderboard();
+
+          if (isNewPlayer && !packet.isReply) {
+            this.broadcast({
+              type: 'TEAM_SCORE_UPDATE',
+              teamName: this.game.teamName,
+              score: this.game.calculateCurrentScore(),
+              members: this.game.teamMembers,
+              isGoBig: this.game.isGoBigActive,
+              isReply: true
+            });
+          }
         }
         break;
 
