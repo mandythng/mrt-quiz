@@ -39,6 +39,7 @@
         <div class="room-badge" id="roomBadge">
           <i class="fa-solid fa-users"></i> <span id="roomStatusText">Team Mode</span>
         </div>
+        <button id="startRoomMatchBtn" class="btn btn-success hidden"><i class="fa-solid fa-play"></i> Start Match for All</button>
         <button id="soundToggleBtn" class="btn btn-icon" title="Toggle Sound"><i class="fa-solid fa-volume-high"></i></button>
         <button id="openSetupBtn" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> Register Team</button>
       </div>
@@ -357,6 +358,14 @@
           <button id="playAgainBtn" class="btn btn-primary"><i class="fa-solid fa-rotate-right"></i> Play Again</button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Synchronized 3-2-1 GO Countdown Overlay -->
+  <div id="countdownOverlay" class="countdown-overlay hidden">
+    <div class="countdown-card">
+      <div id="countdownNumber" class="countdown-number">3</div>
+      <div id="countdownText" class="countdown-text">GET READY!</div>
     </div>
   </div>
 

@@ -149,6 +149,12 @@ class MRTQuizGame {
     this.lrtBreakdownVal = document.getElementById("lrtBreakdownVal");
     this.upcomingBreakdownVal = document.getElementById("upcomingBreakdownVal");
     this.goBigSummaryBanner = document.getElementById("goBigSummaryBanner");
+
+    // Room Match & Countdown Elements
+    this.startRoomMatchBtn = document.getElementById("startRoomMatchBtn");
+    this.countdownOverlay = document.getElementById("countdownOverlay");
+    this.countdownNumber = document.getElementById("countdownNumber");
+    this.countdownText = document.getElementById("countdownText");
   }
 
   initAudio() {
@@ -210,6 +216,15 @@ class MRTQuizGame {
     this.openSetupBtn.addEventListener("click", () => this.showSetupModal());
     this.closeSetupBtn.addEventListener("click", () => this.hideSetupModal());
     this.startNewGameBtn.addEventListener("click", () => this.startNewGame());
+
+    if (this.startRoomMatchBtn) {
+      this.startRoomMatchBtn.addEventListener("click", () => {
+        if (this.roomSync) {
+          this.roomSync.broadcast({ type: 'START_MATCH_SIGNAL' });
+        }
+        this.triggerSynchronizedCountdown();
+      });
+    }
 
     if (this.joinRoomBtn) {
       this.joinRoomBtn.addEventListener("click", () => {
@@ -931,6 +946,32 @@ class MRTQuizGame {
     this.stationInput.focus();
   }
 
+  triggerSynchronizedCountdown() {
+    if (!this.countdownOverlay) return;
+    this.countdownOverlay.classList.remove("hidden");
+    
+    let count = 3;
+    this.countdownNumber.textContent = count;
+    this.countdownText.textContent = "GET READY!";
+    this.playHitSound({ points: 2 });
+
+    const interval = setInterval(() => {
+      count--;
+      if (count > 0) {
+        this.countdownNumber.textContent = count;
+        this.playHitSound({ points: 2 });
+      } else if (count === 0) {
+        this.countdownNumber.textContent = "GO!";
+        this.countdownText.textContent = "MATCH STARTED!";
+        this.playHitSound({ points: 5 });
+      } else {
+        clearInterval(interval);
+        this.countdownOverlay.classList.add("hidden");
+        this.startNewGame();
+      }
+    }, 1000);
+  }
+
   endGame(isWin = false) {
     this.isGameOver = true;
     if (this.timerInterval) clearInterval(this.timerInterval);
@@ -1141,6 +1182,11 @@ class RoomSyncEngine {
           this.game.addTickerMsg(`⚡ <strong>${packet.teamName}</strong> activated <strong>${packet.cardTitle}</strong>!`, "system");
         }
         break;
+
+      case 'START_MATCH_SIGNAL':
+        this.game.addTickerMsg(`🚀 Match start signal received! Starting countdown...`, "system");
+        this.game.triggerSynchronizedCountdown();
+        break;
     }
   }
 
@@ -1150,6 +1196,9 @@ class RoomSyncEngine {
     if (roomBadge && roomStatusText && this.roomCode) {
       roomBadge.className = "room-badge connected";
       roomStatusText.innerHTML = `Room: <strong>#${this.roomCode}</strong>`;
+    }
+    if (this.game && this.game.startRoomMatchBtn) {
+      this.game.startRoomMatchBtn.classList.remove("hidden");
     }
   }
 }
