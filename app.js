@@ -492,7 +492,7 @@ class MRTQuizGame {
       ptsText = `🚆 LRT STATION (+${pts} PTS)!`;
     } else if (st.is_upcoming) {
       bannerClass = 'upcoming-hit';
-      ptsText = `✨ UPCOMING STATION (+${pts} PTS)!`;
+      ptsText = `✨ FUTURE STATION (+${pts} PTS)!`;
     }
 
     this.feedbackBanner.className = `feedback-banner ${bannerClass}`;
