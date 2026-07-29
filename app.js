@@ -72,15 +72,18 @@ class MRTQuizGame {
 
     this.roomSync = new RoomSyncEngine(this);
 
-    // Auto-connect room from URL parameter ?room=CODE
+    // Auto-open Team Registration modal on boot & pre-fill room code from URL parameter ?room=CODE
     const urlParams = new URLSearchParams(window.location.search);
     const roomParam = urlParams.get("room") || urlParams.get("room_code");
-    if (roomParam) {
-      setTimeout(() => {
-        if (this.roomCodeInput) this.roomCodeInput.value = roomParam;
-        this.roomSync.initRoom(roomParam);
-      }, 400);
-    }
+    
+    setTimeout(() => {
+      if (roomParam && this.roomCodeInput) {
+        this.roomCodeInput.value = roomParam.toUpperCase();
+        if (this.roomSync) this.roomSync.initRoom(roomParam);
+      }
+      // Always prompt player to register their team name on load
+      this.showSetupModal();
+    }, 300);
   }
 
   initElements() {
@@ -902,6 +905,9 @@ class MRTQuizGame {
 
   showSetupModal() {
     this.setupModal.classList.remove("hidden");
+    if (this.teamNameInput) {
+      setTimeout(() => this.teamNameInput.focus(), 150);
+    }
   }
 
   hideSetupModal() {
