@@ -717,15 +717,25 @@ class MRTQuizGame {
   }
 
   initLeaderboard() {
+    const isRoomMode = this.roomSync && this.roomSync.roomCode;
+    const includeAI = !isRoomMode && this.aiOpponentsToggle && this.aiOpponentsToggle.checked;
+
     this.players = [
-      { id: "user", name: this.teamName, members: this.teamMembers, isGoBig: this.isGoBigActive, score: 0, isUser: true },
-      { id: "ai1", name: "⚡ Speedy Samurais", members: ["Sam", "Alex"], isGoBig: true, score: 0, isUser: false },
-      { id: "ai2", name: "🧠 MRT Wizards", members: ["Wei", "Mei"], isGoBig: false, score: 0, isUser: false },
-      { id: "ai3", name: "☕ Kopi Masters", members: ["Desmond", "Ben"], isGoBig: false, score: 0, isUser: false }
+      { id: "user", name: this.teamName, members: this.teamMembers, isGoBig: this.isGoBigActive, score: 0, isUser: true }
     ];
 
+    if (includeAI) {
+      this.players.push(
+        { id: "ai1", name: "⚡ Speedy Samurais", members: ["Sam", "Alex"], isGoBig: true, score: 0, isUser: false },
+        { id: "ai2", name: "🧠 MRT Wizards", members: ["Wei", "Mei"], isGoBig: false, score: 0, isUser: false },
+        { id: "ai3", name: "☕ Kopi Masters", members: ["Desmond", "Ben"], isGoBig: false, score: 0, isUser: false }
+      );
+      this.startAISimulation();
+    } else {
+      if (this.aiInterval) clearInterval(this.aiInterval);
+    }
+
     this.renderLeaderboard();
-    this.startAISimulation();
   }
 
   updateLeaderboardUserScore() {
@@ -898,7 +908,7 @@ class MRTQuizGame {
     this.setupModal.classList.add("hidden");
   }
 
-  startNewGame() {
+  startNewGame(isActualMatchStart = false) {
     this.teamName = this.teamNameInput.value.trim() || "Team Alpha";
     
     const rawMembers = this.teamMembersInput.value.trim();
@@ -907,6 +917,14 @@ class MRTQuizGame {
     this.isGoBigActive = this.goBigToggle.checked;
     this.timerSeconds = parseInt(this.timerSelect.value, 10);
     
+    // Auto-connect room if a room code is specified in the setup modal
+    const roomCode = this.roomCodeInput ? this.roomCodeInput.value.trim() : "";
+    if (roomCode && this.roomSync && (!this.roomSync.roomCode || this.roomSync.roomCode !== roomCode.toUpperCase())) {
+      this.roomSync.initRoom(roomCode);
+    }
+
+    const isRoomMode = this.roomSync && !!this.roomSync.roomCode;
+
     // Reset Line Dominance & Cards Deck
     Object.values(this.lineDominanceMap).forEach(l => l.capturedBy = null);
     this.globalPowerUpDeck.forEach(c => c.claimedBy = null);
@@ -929,21 +947,33 @@ class MRTQuizGame {
     this.updateProgressUI();
 
     if (this.timerInterval) clearInterval(this.timerInterval);
-    this.startTimer();
     this.initLeaderboard();
     this.updateDeckSummaryUI();
     this.renderTurfWarDrawer();
 
-    // Auto-connect room if a room code is specified in the setup modal
-    const roomCode = this.roomCodeInput ? this.roomCodeInput.value.trim() : "";
-    if (roomCode && this.roomSync) {
-      this.roomSync.initRoom(roomCode);
-    }
-
     this.hideSetupModal();
-    this.stationInput.disabled = false;
-    this.stationInput.value = "";
-    this.stationInput.focus();
+
+    if (isRoomMode && !isActualMatchStart) {
+      // WAITING LOBBY MODE - Timer paused, inputs locked until Start Match for All
+      this.isRoomLobbyWaiting = true;
+      this.stationInput.disabled = true;
+      this.stationInput.value = "";
+      this.stationInput.placeholder = "⏳ Waiting for Host to click 'Start Match for All'...";
+      this.timerDisplay.textContent = this.formatTime(this.timerSeconds);
+      
+      this.feedbackBanner.className = "feedback-banner upcoming-hit";
+      this.feedbackText.innerHTML = `<strong>⏳ ROOM #${this.roomSync.roomCode} LOBBY</strong> — Connected! Click <strong>"Start Match for All"</strong> when everyone is ready.`;
+      this.feedbackBanner.classList.remove("hidden");
+    } else {
+      // START ACTUAL MATCH
+      this.isRoomLobbyWaiting = false;
+      this.startTimer();
+      this.stationInput.disabled = false;
+      this.stationInput.value = "";
+      this.stationInput.placeholder = "e.g. Orchard, Dhoby Ghaut, Riviera, Tengah...";
+      this.stationInput.focus();
+      this.feedbackBanner.classList.add("hidden");
+    }
   }
 
   triggerSynchronizedCountdown() {
@@ -967,7 +997,7 @@ class MRTQuizGame {
       } else {
         clearInterval(interval);
         this.countdownOverlay.classList.add("hidden");
-        this.startNewGame();
+        this.startNewGame(true);
       }
     }, 1000);
   }
@@ -1107,7 +1137,20 @@ class RoomSyncEngine {
     }
 
     this.updateRoomUIConnected();
-    this.game.addTickerMsg(`🌐 Connected to Live Online Room <strong>#${this.roomCode}</strong>!`, "system");
+    if (this.game) {
+      this.game.initLeaderboard();
+      if (!this.game.isMatchStarted) {
+        this.game.stationInput.disabled = true;
+        this.game.stationInput.value = "";
+        this.game.stationInput.placeholder = "⏳ Waiting for Host to click 'Start Match for All'...";
+        if (this.game.timerInterval) clearInterval(this.game.timerInterval);
+        this.game.timerDisplay.textContent = this.game.formatTime(this.game.timerSeconds);
+        this.game.feedbackBanner.className = "feedback-banner upcoming-hit";
+        this.game.feedbackText.innerHTML = `<strong>⏳ ROOM #${this.roomCode} WAITING LOBBY</strong> — Connected! Click <strong>"Start Match for All"</strong> when everyone is ready.`;
+        this.game.feedbackBanner.classList.remove("hidden");
+      }
+      this.game.addTickerMsg(`🌐 Connected to Live Online Room <strong>#${this.roomCode}</strong>!`, "system");
+    }
   }
 
   setupConnection(conn) {
