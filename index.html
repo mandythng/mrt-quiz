@@ -40,7 +40,6 @@
           <i class="fa-solid fa-users"></i> <span id="roomStatusText">Team Mode</span>
         </div>
         <button id="soundToggleBtn" class="btn btn-icon" title="Toggle Sound"><i class="fa-solid fa-volume-high"></i></button>
-        <button id="themeToggleBtn" class="btn btn-icon" title="Toggle Dark/Light Theme"><i class="fa-solid fa-moon"></i></button>
         <button id="openSetupBtn" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> Register Team</button>
       </div>
     </header>
@@ -227,12 +226,9 @@
           </div>
 
           <div class="form-group room-sync-card">
-            <label><i class="fa-solid fa-globe"></i> Live Online Room Sync (Multi-Device)</label>
-            <div class="room-input-row">
-              <input type="text" id="roomCodeInput" placeholder="Room Code (e.g. HAPPYHOUR)" style="text-transform: uppercase;" />
-              <button type="button" id="joinRoomBtn" class="btn btn-secondary"><i class="fa-solid fa-network-wired"></i> Connect Room</button>
-            </div>
-            <span class="field-hint">Connect to a shared room code to sync station guesses live across multiple laptops!</span>
+            <label><i class="fa-solid fa-globe"></i> Live Online Room Code (Optional)</label>
+            <input type="text" id="roomCodeInput" placeholder="e.g. HAPPYHOUR" style="text-transform: uppercase;" />
+            <span class="field-hint">Entering a room code automatically syncs live team scores & Turf War captures across laptops!</span>
           </div>
 
           <div class="form-group go-big-card">

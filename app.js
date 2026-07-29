@@ -203,7 +203,9 @@ class MRTQuizGame {
 
     this.pauseBtn.addEventListener("click", () => this.togglePause());
     this.soundToggleBtn.addEventListener("click", () => this.toggleSound());
-    this.themeToggleBtn.addEventListener("click", () => this.toggleTheme());
+    if (this.themeToggleBtn) {
+      this.themeToggleBtn.addEventListener("click", () => this.toggleTheme());
+    }
     
     this.openSetupBtn.addEventListener("click", () => this.showSetupModal());
     this.closeSetupBtn.addEventListener("click", () => this.hideSetupModal());
@@ -916,6 +918,12 @@ class MRTQuizGame {
     this.initLeaderboard();
     this.updateDeckSummaryUI();
     this.renderTurfWarDrawer();
+
+    // Auto-connect room if a room code is specified in the setup modal
+    const roomCode = this.roomCodeInput ? this.roomCodeInput.value.trim() : "";
+    if (roomCode && this.roomSync) {
+      this.roomSync.initRoom(roomCode);
+    }
 
     this.hideSetupModal();
     this.stationInput.disabled = false;
