@@ -75,15 +75,13 @@ class MRTQuizGame {
     // Auto-open Team Registration modal on boot & pre-fill room code from URL parameter ?room=CODE
     const urlParams = new URLSearchParams(window.location.search);
     const roomParam = urlParams.get("room") || urlParams.get("room_code");
+    if (roomParam && this.roomSync) {
+      this.roomSync.initRoom(roomParam);
+    }
     
     setTimeout(() => {
-      if (roomParam && this.roomCodeInput) {
-        this.roomCodeInput.value = roomParam.toUpperCase();
-        if (this.roomSync) this.roomSync.initRoom(roomParam);
-      }
-      // Always prompt player to register their team name on load
       this.showSetupModal();
-    }, 300);
+    }, 100);
   }
 
   initElements() {
@@ -131,6 +129,7 @@ class MRTQuizGame {
     this.startNewGameBtn = document.getElementById("startNewGameBtn");
     this.teamNameInput = document.getElementById("teamNameInput");
     this.teamMembersInput = document.getElementById("teamMembersInput");
+    this.roomCodeInput = document.getElementById("roomCodeInput");
     this.goBigToggle = document.getElementById("goBigToggle");
     this.aiOpponentsToggle = document.getElementById("aiOpponentsToggle");
     this.timerSelect = document.getElementById("timerSelect");
@@ -829,11 +828,15 @@ class MRTQuizGame {
     }, 1000);
   }
 
+  formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }
+
   updateTimerDisplay() {
     if (this.timerSeconds <= 0) return;
-    const mins = Math.floor(this.timerSeconds / 60);
-    const secs = this.timerSeconds % 60;
-    this.timerDisplay.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    this.timerDisplay.textContent = this.formatTime(this.timerSeconds);
   }
 
   togglePause() {
@@ -905,6 +908,12 @@ class MRTQuizGame {
 
   showSetupModal() {
     this.setupModal.classList.remove("hidden");
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomParam = urlParams.get("room") || urlParams.get("room_code");
+    const activeRoomCode = (this.roomSync && this.roomSync.roomCode) || roomParam || "";
+    if (this.roomCodeInput && activeRoomCode) {
+      this.roomCodeInput.value = activeRoomCode.toUpperCase();
+    }
     if (this.teamNameInput) {
       setTimeout(() => this.teamNameInput.focus(), 150);
     }
