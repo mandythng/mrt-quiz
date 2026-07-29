@@ -184,13 +184,19 @@
         </div>
 
         <!-- Compressed Action Deck Summary Card -->
-        <div class="powerup-deck-compressed-card">
+        <div class="powerup-deck-compressed-card" id="powerupDeckCard">
           <div class="compressed-deck-header">
             <div>
               <h4><i class="fa-solid fa-bolt-lightning"></i> Action Deck</h4>
-              <span id="deckSummaryCountText" class="compressed-deck-sub">0 of 10 Cards Claimed</span>
+              <span id="deckSummaryCountText" class="compressed-deck-sub">0 Claims Available</span>
             </div>
             <button id="viewDeckBtn" class="btn btn-sm btn-secondary"><i class="fa-solid fa-layer-group"></i> View Cards</button>
+          </div>
+          <div class="exhausted-cards-list-box" id="exhaustedCardsBox">
+            <span class="exhausted-title"><i class="fa-solid fa-ban"></i> Exhausted Cards:</span>
+            <ul id="exhaustedCardsList" class="exhausted-cards-list">
+              <li class="empty-exhausted">No cards exhausted yet.</li>
+            </ul>
           </div>
         </div>
 
@@ -262,30 +268,15 @@
     <div id="deckOverviewModal" class="modal-overlay hidden">
       <div class="modal-card modal-lg">
         <div class="modal-header">
-          <h2><i class="fa-solid fa-bolt-lightning"></i> Action Cards Deck Status (10 Cards)</h2>
+          <h2><i class="fa-solid fa-bolt-lightning"></i> Action Cards Deck (10 Cards Total)</h2>
           <button class="close-modal-btn" id="closeDeckModalBtn">&times;</button>
         </div>
         <div class="modal-body">
+          <div id="claimEntitlementBanner" class="claim-entitlement-banner">
+            <!-- Dynamic Entitlement Banner -->
+          </div>
           <div class="powerup-cards-grid-modal" id="powerupDeckModalGrid">
-            <!-- Rendered dynamically -->
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Power-Up Selection Modal (Triggered on Line Completion) -->
-    <div id="powerUpSelectModal" class="modal-overlay hidden">
-      <div class="modal-card modal-lg">
-        <div class="modal-header">
-          <h2><i class="fa-solid fa-trophy"></i> Line Captured! (+15 PTS Bonus)</h2>
-          <button class="close-modal-btn" id="closePowerUpModalBtn">&times;</button>
-        </div>
-        <div class="modal-body">
-          <div class="line-completed-banner">
-            🏆 <strong id="completedLineNameText">Downtown Line</strong> Captured! You earned <strong>+15 PTS Dominance Bonus</strong>! Select 1 Action Card below:
-          </div>
-          <div class="available-powerups-grid" id="modalPowerUpGrid">
-            <!-- Render available cards -->
+            <!-- 10 Action Cards (Available + Exhausted) Rendered dynamically -->
           </div>
         </div>
       </div>
