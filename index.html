@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Singapore MRT/LRT Map Quiz - Official SVG Edition</title>
+  <!-- Google Fonts & FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- PeerJS for Real-time Multiplayer -->
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Navigation Bar -->
+    <header class="navbar">
+      <div class="brand">
+        <i class="fa-solid fa-train-subway brand-icon"></i>
+        <div class="brand-text">
+          <h1>SG MRT/LRT Map Quiz</h1>
+          <span class="sub-title">Official System Map Edition • 230 Stations (Max 318 Pts)</span>
+        </div>
+      </div>
+
+      <div class="navbar-center">
+        <div class="timer-box" id="timerBox">
+          <i class="fa-regular fa-clock"></i>
+          <span id="timerDisplay">30:00</span>
+        </div>
+        <button id="pauseBtn" class="btn btn-icon" title="Pause Game"><i class="fa-solid fa-pause"></i></button>
+      </div>
+
+      <div class="navbar-actions">
+        <div class="room-badge" id="roomBadge">
+          <i class="fa-solid fa-users"></i> <span id="roomStatusText">Team Mode</span>
+        </div>
+        <button id="soundToggleBtn" class="btn btn-icon" title="Toggle Sound"><i class="fa-solid fa-volume-high"></i></button>
+        <button id="themeToggleBtn" class="btn btn-icon" title="Toggle Dark/Light Theme"><i class="fa-solid fa-moon"></i></button>
+        <button id="openSetupBtn" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> Register Team</button>
+      </div>
+    </header>
+
+    <!-- Main Game Workspace -->
+    <main class="game-layout">
+      <!-- Left Panel: Input & Point Rules -->
+      <aside class="panel left-panel">
+        <div class="input-card">
+          <label for="stationInput" class="input-label">
+            <span>Rattle Off Stations</span>
+            <span class="input-hint">Type full station names only (No codes or initials)</span>
+          </label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-magnifying-glass input-icon"></i>
+            <input 
+              type="text" 
+              id="stationInput" 
+              placeholder="e.g. Orchard, Dhoby Ghaut, Riviera, Tengah..." 
+              autocomplete="off" 
+              autofocus 
+            />
+            <button id="clearInputBtn" class="btn-clear"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <div id="feedbackBanner" class="feedback-banner hidden">
+            <span id="feedbackText"></span>
+          </div>
+
+          <!-- Active Status Effect Banners -->
+          <div id="activeEffectBanner" class="active-effect-banner hidden">
+            <span id="activeEffectText"></span>
+          </div>
+        </div>
+
+        <!-- Clean Redesigned Point System Info Card with Perfectly Aligned Right Column -->
+        <div class="scoring-rules-card">
+          <h3><i class="fa-solid fa-award"></i> Point Scoring Rules</h3>
+          
+          <div class="rule-row mrt-row">
+            <div class="rule-left">
+              <span class="rule-badge-pill mrt">1 PT</span>
+              <span class="rule-title">Existing MRT</span>
+            </div>
+            <span class="rule-count">142 stations</span>
+          </div>
+
+          <div class="rule-row lrt-row">
+            <div class="rule-left">
+              <span class="rule-badge-pill lrt">2 PTS</span>
+              <span class="rule-title">LRT Network</span>
+            </div>
+            <span class="rule-count">38 stations</span>
+          </div>
+
+          <div class="rule-row upcoming-row">
+            <div class="rule-left">
+              <span class="rule-badge-pill upcoming">2 PTS</span>
+              <span class="rule-title">Future / Upcoming</span>
+            </div>
+            <span class="rule-count">50 stations</span>
+          </div>
+
+          <div class="rule-row dominance-row" style="border-left: 3px solid #eab308; background: linear-gradient(90deg, rgba(234, 179, 8, 0.15), #1e293b);">
+            <div class="rule-left">
+              <span class="rule-badge-pill" style="background:rgba(234, 179, 8, 0.2); color:#eab308; border:1px solid rgba(234, 179, 8, 0.4);">+15 PTS</span>
+              <span class="rule-title">Line Capture</span>
+            </div>
+            <span class="rule-count">First team bonus</span>
+          </div>
+        </div>
+
+        <div class="overall-progress-card">
+          <div class="progress-header">
+            <span>Score Progress</span>
+            <span id="overallScoreText" class="score-num">0 / 318 Pts (0%)</span>
+          </div>
+          <div class="progress-track">
+            <div id="overallProgressBar" class="progress-fill" style="width: 0%;"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-top:0.5rem; font-size:0.8rem; color:var(--text-secondary);">
+            <span>Stations Guessed:</span>
+            <strong id="guessedCountText" style="color:var(--text-main);">0 / 230</strong>
+          </div>
+        </div>
+
+        <!-- Recent Hits List -->
+        <div class="recent-hits-card">
+          <h3>Recent Guesses</h3>
+          <ul id="recentHitsList" class="recent-list">
+            <li class="empty-msg">No stations guessed yet. Start typing!</li>
+          </ul>
+        </div>
+      </aside>
+
+      <!-- Center Panel: Official SVG Map Viewport -->
+      <section class="panel map-panel" id="mapPanel">
+        <div class="map-toolbar">
+          <div class="zoom-controls">
+            <button id="zoomInBtn" class="btn btn-sm" title="Zoom In"><i class="fa-solid fa-plus"></i></button>
+            <button id="zoomOutBtn" class="btn btn-sm" title="Zoom Out"><i class="fa-solid fa-minus"></i></button>
+            <button id="zoomResetBtn" class="btn btn-sm" title="Reset View"><i class="fa-solid fa-rotate-left"></i></button>
+          </div>
+          <div class="map-legend">
+            <span class="legend-chip existing"><span class="dot"></span> Operational MRT (1 pt)</span>
+            <span class="legend-chip lrt"><span class="dot"></span> LRT Station (2 pts)</span>
+            <span class="legend-chip upcoming"><span class="dot"></span> Upcoming / Future (2 pts)</span>
+          </div>
+        </div>
+
+        <div class="map-viewport-wrapper" id="mapViewportWrapper">
+          <div class="map-viewport" id="mapViewport">
+            <!-- Official SVG Map Container -->
+            <div id="svgContainer"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Panel: Live Real-Time Leaderboard & Turf War Drawer -->
+      <aside class="panel right-panel">
+        <div class="leaderboard-card">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-trophy"></i> Live Leaderboard</h3>
+            <span class="badge-live"><i class="fa-solid fa-signal pulse"></i> LIVE</span>
+          </div>
+
+          <div class="leaderboard-list" id="leaderboardList">
+            <!-- Active Players/Teams List Rendered Dynamically -->
+          </div>
+        </div>
+
+        <!-- Turf War Line Dominance Tracker (9 Lines) -->
+        <div class="turfwar-card">
+          <div class="card-header">
+            <h4><i class="fa-solid fa-map-location-dot"></i> Turf War Line Dominance</h4>
+            <span class="turfwar-sub-badge">+15 PTS First Capture</span>
+          </div>
+          <div class="turfwar-lines-list" id="turfwarLinesList">
+            <!-- 9 Lines Progress Rendered Dynamically -->
+          </div>
+        </div>
+
+        <!-- Compressed Action Deck Summary Card -->
+        <div class="powerup-deck-compressed-card">
+          <div class="compressed-deck-header">
+            <div>
+              <h4><i class="fa-solid fa-bolt-lightning"></i> Action Deck</h4>
+              <span id="deckSummaryCountText" class="compressed-deck-sub">0 of 10 Cards Claimed</span>
+            </div>
+            <button id="viewDeckBtn" class="btn btn-sm btn-secondary"><i class="fa-solid fa-layer-group"></i> View Cards</button>
+          </div>
+        </div>
+
+        <!-- Live Activity Ticker (Features ALL Teams Live!) -->
+        <div class="activity-card">
+          <div class="card-header">
+            <h4><i class="fa-solid fa-bolt"></i> Activity Ticker</h4>
+          </div>
+          <div class="ticker-box" id="tickerBox">
+            <ul id="tickerList" class="ticker-list">
+              <li class="ticker-item system"><i class="fa-solid fa-info-circle"></i> Complete an MRT line first to capture +15 PTS & pick an Action Card!</li>
+            </ul>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <!-- Team Registration Setup Modal -->
+    <div id="setupModal" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2><i class="fa-solid fa-users"></i> Team Registration</h2>
+          <button class="close-modal-btn" id="closeSetupBtn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label><i class="fa-solid fa-flag"></i> Team Name</label>
+            <input type="text" id="teamNameInput" placeholder="e.g. Team East Coast" value="Team Alpha" />
+          </div>
+
+          <div class="form-group">
+            <label><i class="fa-solid fa-user-group"></i> Individual Team Members</label>
+            <input type="text" id="teamMembersInput" placeholder="e.g. Amanda, Bob, Charlie" value="Amanda, Bob, Charlie" />
+            <span class="field-hint">Separate member names with commas</span>
+          </div>
+
+          <div class="form-group room-sync-card">
+            <label><i class="fa-solid fa-globe"></i> Live Online Room Sync (Multi-Device)</label>
+            <div class="room-input-row">
+              <input type="text" id="roomCodeInput" placeholder="Room Code (e.g. HAPPYHOUR)" style="text-transform: uppercase;" />
+              <button type="button" id="joinRoomBtn" class="btn btn-secondary"><i class="fa-solid fa-network-wired"></i> Connect Room</button>
+            </div>
+            <span class="field-hint">Connect to a shared room code to sync station guesses live across multiple laptops!</span>
+          </div>
+
+          <div class="form-group go-big-card">
+            <label class="toggle-switch-container">
+              <input type="checkbox" id="goBigToggle" />
+              <div class="toggle-content">
+                <span class="toggle-title"><i class="fa-solid fa-fire-flame-curved"></i> Activate "Go Big or Go Home" Buff</span>
+                <span class="toggle-desc">High Stakes: Get <strong>1.5x points</strong> per station guessed, but <strong>-1 point per missing existing station</strong> at the end!</span>
+              </div>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label><i class="fa-solid fa-robot"></i> Add AI Competitor Teams</label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="aiOpponentsToggle" checked />
+              <span class="slider"></span>
+              <span class="toggle-label">Include 3 simulated competitor teams on the live leaderboard</span>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label><i class="fa-regular fa-clock"></i> Game Duration</label>
+            <select id="timerSelect">
+              <option value="600">10 Minutes (Speed Run)</option>
+              <option value="1800" selected>30 Minutes (Happy Hour Standard)</option>
+              <option value="0">Unlimited (No Timer)</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="startNewGameBtn" class="btn btn-primary btn-block"><i class="fa-solid fa-play"></i> Register Team & Start Match</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Power-Up Action Deck Modal Drawer -->
+    <div id="deckOverviewModal" class="modal-overlay hidden">
+      <div class="modal-card modal-lg">
+        <div class="modal-header">
+          <h2><i class="fa-solid fa-bolt-lightning"></i> Action Cards Deck Status (10 Cards)</h2>
+          <button class="close-modal-btn" id="closeDeckModalBtn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="powerup-cards-grid-modal" id="powerupDeckModalGrid">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Power-Up Selection Modal (Triggered on Line Completion) -->
+    <div id="powerUpSelectModal" class="modal-overlay hidden">
+      <div class="modal-card modal-lg">
+        <div class="modal-header">
+          <h2><i class="fa-solid fa-trophy"></i> Line Captured! (+15 PTS Bonus)</h2>
+          <button class="close-modal-btn" id="closePowerUpModalBtn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="line-completed-banner">
+            🏆 <strong id="completedLineNameText">Downtown Line</strong> Captured! You earned <strong>+15 PTS Dominance Bonus</strong>! Select 1 Action Card below:
+          </div>
+          <div class="available-powerups-grid" id="modalPowerUpGrid">
+            <!-- Render available cards -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Over / Results Modal -->
+    <div id="gameOverModal" class="modal-overlay hidden">
+      <div class="modal-card modal-lg">
+        <div class="modal-header">
+          <h2><i class="fa-solid fa-crown"></i> Game Finished!</h2>
+          <button class="close-modal-btn" id="closeGameOverBtn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="results-summary">
+            <div class="stat-box">
+              <span class="stat-label">Final Score</span>
+              <span class="stat-value" id="finalScoreVal">0 Pts</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Stations Guessed</span>
+              <span class="stat-value" id="finalStationsVal">0 / 230</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Leaderboard Rank</span>
+              <span class="stat-value highlight" id="finalRankVal">#1</span>
+            </div>
+          </div>
+
+          <!-- Detailed Station Category Breakdown -->
+          <div class="category-breakdown-card">
+            <h3><i class="fa-solid fa-chart-pie"></i> Station Category Breakdown</h3>
+            <div class="category-grid">
+              <div class="cat-item mrt">
+                <span class="cat-label">Existing MRT</span>
+                <span class="cat-val" id="mrtBreakdownVal">0 / 142</span>
+              </div>
+              <div class="cat-item lrt">
+                <span class="cat-label">Existing LRT</span>
+                <span class="cat-val" id="lrtBreakdownVal">0 / 38</span>
+              </div>
+              <div class="cat-item upcoming">
+                <span class="cat-label">Future / Upcoming</span>
+                <span class="cat-val" id="upcomingBreakdownVal">0 / 50</span>
+              </div>
+            </div>
+            
+            <!-- Dynamic Go Big Penalty Calculation Banner -->
+            <div id="goBigSummaryBanner" class="gobig-summary-banner hidden">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <div class="missed-stations-section">
+            <h3>Missed Stations Review</h3>
+            <div class="missed-list" id="missedListContainer">
+              <!-- List of missed stations -->
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="copyResultsBtn" class="btn btn-secondary"><i class="fa-solid fa-share-nodes"></i> Copy Results to Clipboard</button>
+          <button id="playAgainBtn" class="btn btn-primary"><i class="fa-solid fa-rotate-right"></i> Play Again</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="mrt_data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
