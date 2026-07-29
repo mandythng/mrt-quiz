@@ -977,7 +977,7 @@ class MRTQuizGame {
       this.timerDisplay.textContent = this.formatTime(this.timerSeconds);
       
       this.feedbackBanner.className = "feedback-banner upcoming-hit";
-      this.feedbackText.innerHTML = `<strong>⏳ ROOM #${this.roomSync.roomCode} LOBBY</strong> — Connected! Click <strong>"Start Match for All"</strong> when everyone is ready.`;
+      this.feedbackText.innerHTML = `<strong>⏳ ROOM #${this.roomSync.roomCode} LOBBY</strong> — Registered "<strong>${this.teamName}</strong>"! Waiting for Host to click <strong>"Start Match for All"</strong>.`;
       this.feedbackBanner.classList.remove("hidden");
     } else {
       // START ACTUAL MATCH
