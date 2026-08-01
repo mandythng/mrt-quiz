@@ -1121,7 +1121,7 @@ class MRTQuizGame {
     this.teamName = this.teamNameInput.value.trim() || "Team Alpha";
     
     const rawMembers = this.teamMembersInput.value.trim();
-    this.teamMembers = rawMembers ? rawMembers.split(",").map(m => m.trim()).filter(Boolean) : ["Amanda"];
+    this.teamMembers = rawMembers ? rawMembers.split(",").map(m => m.trim()).filter(Boolean) : ["Amanda", "Bob", "Charlie"];
 
     this.isGoBigActive = this.goBigToggle.checked;
     this.timerSeconds = parseInt(this.timerSelect.value, 10);
