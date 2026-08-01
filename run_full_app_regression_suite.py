@@ -72,9 +72,9 @@ if "calculateLineProgress" in app_code and "player.lineProgress" in app_code and
 else:
     failures.append("FAIL B2: Turf War multi-team sync logic missing from app.js!")
 
-# Test B3: Mobile Dock Action Cards Inline Handler
-if "target === \"cards\"" in app_code and "powerupDeckCard" in app_code:
-    print("✅ PASS B3: Mobile bottom dock Cards tab routes cleanly to inline powerupDeckCard.")
+# Test B3: Mobile Dock Action Cards Modal Handler
+if 'target === "cards"' in app_code and "showDeckOverviewModal" in app_code:
+    print("✅ PASS B3: Mobile bottom dock Cards tab routes directly to detailed Action Cards Deck modal.")
 else:
     failures.append("FAIL B3: Mobile bottom dock Cards tab handler missing!")
 
@@ -118,15 +118,15 @@ if ".input-actions-right" in css_code and "#stationInput {" in css_code and "fle
 else:
     failures.append("FAIL C4: Flexbox rules missing from style.css!")
 
-# Test C5: Mobile Inline Cards Deck elements
-if 'id="powerupDeckInlineGrid"' in html_code and 'mobile-only-block' in html_code:
-    print("✅ PASS C5: Mobile inline cards grid present in index.html with mobile-only-block.")
+# Test C5: Mobile Persistent Bottom Dock Z-Index
+if "z-index: 3500" in css_code and "#deckOverviewModal" in css_code:
+    print("✅ PASS C5: Mobile bottom dock persistent z-index (3500) and modal padding present in style.css.")
 else:
-    failures.append("FAIL C5: powerupDeckInlineGrid or mobile-only-block missing!")
+    failures.append("FAIL C5: Persistent bottom dock z-index or modal padding missing!")
 
-# Test C5: Modal Z-Index and Scrollable Card Fix
-if "z-index: 2500" in css_code and "max-height: 82vh" in css_code:
-    print("✅ PASS C6: Registration modal z-index (2500) and max-height scrolling present in style.css.")
+# Test C6: Modal Z-Index and Scrollable Card Fix
+if "z-index: 9999" in css_code and "max-height: 85vh" in css_code:
+    print("✅ PASS C6: Registration modal z-index (9999) and max-height scrolling present in style.css.")
 else:
     failures.append("FAIL C6: Modal z-index or max-height scrolling missing in style.css!")
 

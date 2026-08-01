@@ -1475,7 +1475,7 @@ body {
   background-color: rgba(18, 24, 38, 0.95);
   backdrop-filter: blur(12px);
   border-top: 1px solid var(--border-color);
-  z-index: 1000;
+  z-index: 3500 !important;
   justify-content: space-around;
   align-items: center;
   padding: 0 0.5rem;
@@ -1728,4 +1728,15 @@ body {
   border-top: 1px solid var(--border-color) !important;
   background-color: var(--panel-bg) !important;
   z-index: 10 !important;
+}
+
+
+/* Action Deck Modal Popup with Persistent Bottom Dock */
+#deckOverviewModal {
+  z-index: 2500 !important;
+  padding-bottom: 75px !important;
+}
+
+#deckOverviewModal .modal-card {
+  max-height: calc(85vh - 65px) !important;
 }
