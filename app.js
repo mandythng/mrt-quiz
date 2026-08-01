@@ -258,18 +258,20 @@ class MRTQuizGame {
       });
     }
 
-    this.viewDeckBtn.addEventListener("click", () => this.showDeckOverviewModal());
-    this.closeDeckModalBtn.addEventListener("click", () => this.hideDeckOverviewModal());
+    if (this.viewDeckBtn) this.viewDeckBtn.addEventListener("click", () => this.showDeckOverviewModal());
+    if (this.closeDeckModalBtn) this.closeDeckModalBtn.addEventListener("click", () => this.hideDeckOverviewModal());
 
-    this.closePowerUpModalBtn.addEventListener("click", () => this.hidePowerUpModal());
+    if (this.closePowerUpModalBtn) this.closePowerUpModalBtn.addEventListener("click", () => this.hidePowerUpModal());
 
-    this.closeGameOverBtn.addEventListener("click", () => this.hideGameOverModal());
-    this.playAgainBtn.addEventListener("click", () => {
-      this.hideGameOverModal();
-      this.showSetupModal();
-    });
+    if (this.closeGameOverBtn) this.closeGameOverBtn.addEventListener("click", () => this.hideGameOverModal());
+    if (this.playAgainBtn) {
+      this.playAgainBtn.addEventListener("click", () => {
+        this.hideGameOverModal();
+        this.showSetupModal();
+      });
+    }
 
-    this.copyResultsBtn.addEventListener("click", () => this.copyResultsToClipboard());
+    if (this.copyResultsBtn) this.copyResultsBtn.addEventListener("click", () => this.copyResultsToClipboard());
   }
 
   async loadSVGMap() {
