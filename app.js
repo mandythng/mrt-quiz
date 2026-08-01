@@ -407,18 +407,6 @@ class MRTQuizGame {
               if (lbCard) lbCard.scrollIntoView({ behavior: "smooth" });
             }
           }
-            if (rightPanel) rightPanel.style.display = "flex";
-            if (mapPanel) mapPanel.style.display = "none";
-            if (leftPanel) leftPanel.style.display = "none";
-
-            if (target === "turfwar") {
-              const turfCard = document.querySelector(".turfwar-card");
-              if (turfCard) turfCard.scrollIntoView({ behavior: "smooth" });
-            } else {
-              const lbCard = document.querySelector(".leaderboard-card");
-              if (lbCard) lbCard.scrollIntoView({ behavior: "smooth" });
-            }
-          }
         }
       });
     });
