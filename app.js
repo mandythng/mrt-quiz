@@ -279,10 +279,12 @@ class MRTQuizGame {
 
   async loadSVGMap() {
     try {
-      const resp = await fetch("map.svg");
-      if (!resp.ok) throw new Error("Failed to load map.svg");
-      const svgText = await resp.text();
-      this.svgContainer.innerHTML = svgText;
+      if (!this.svgContainer || !this.svgContainer.querySelector("svg")) {
+        const resp = await fetch("map.svg");
+        if (!resp.ok) throw new Error("Failed to load map.svg");
+        const svgText = await resp.text();
+        if (this.svgContainer) this.svgContainer.innerHTML = svgText;
+      }
       
       this.startTimer();
       this.initLeaderboard();
@@ -290,7 +292,9 @@ class MRTQuizGame {
       this.renderTurfWarDrawer();
     } catch (err) {
       console.error("Error loading SVG map:", err);
-      this.svgContainer.innerHTML = `<div class="error-msg">Failed to load SVG map. Please refresh.</div>`;
+      if (this.svgContainer && !this.svgContainer.querySelector("svg")) {
+        this.svgContainer.innerHTML = `<div class="error-msg">Failed to load SVG map. Please refresh.</div>`;
+      }
     }
   }
 
