@@ -391,7 +391,12 @@ class MRTQuizGame {
             if (mapPanel) mapPanel.style.display = "flex";
             if (leftPanel) leftPanel.style.display = "flex";
             if (rightPanel) rightPanel.style.display = "none";
-          } else if (target === "leaderboard" || target === "turfwar" || target === "cards") {
+          } else if (target === "cards") {
+            this.showDeckOverviewModal();
+            dockTabs.forEach(t => t.classList.remove("active"));
+            const mapTab = document.getElementById("tabMap");
+            if (mapTab) mapTab.classList.add("active");
+          } else if (target === "leaderboard" || target === "turfwar") {
             if (rightPanel) rightPanel.style.display = "flex";
             if (mapPanel) mapPanel.style.display = "none";
             if (leftPanel) leftPanel.style.display = "none";
@@ -399,9 +404,6 @@ class MRTQuizGame {
             if (target === "turfwar") {
               const turfCard = document.querySelector(".turfwar-card");
               if (turfCard) turfCard.scrollIntoView({ behavior: "smooth" });
-            } else if (target === "cards") {
-              const actionCard = document.querySelector(".action-deck-card");
-              if (actionCard) actionCard.scrollIntoView({ behavior: "smooth" });
             } else {
               const lbCard = document.querySelector(".leaderboard-card");
               if (lbCard) lbCard.scrollIntoView({ behavior: "smooth" });
@@ -606,6 +608,19 @@ class MRTQuizGame {
     }
   }
 
+  calculateLineProgress() {
+    const lp = {};
+    Object.keys(this.lineDominanceMap).forEach(code => {
+      const lineStations = this.allStations.filter(st => 
+        (st.line_code === code || (st.lines && st.lines.includes(code))) &&
+        (!st.is_upcoming || code === "JRL" || code === "CRL")
+      );
+      const guessed = lineStations.filter(st => this.guessedStationIds.has(st.id)).length;
+      lp[code] = guessed;
+    });
+    return lp;
+  }
+
   calculateCurrentScore() {
     let rawScore = 0;
     this.guessedStationIds.forEach(id => {
@@ -691,7 +706,26 @@ class MRTQuizGame {
         (!st.is_upcoming || line.code === "JRL" || line.code === "CRL")
       );
       const userGuessed = lineStations.filter(st => this.guessedStationIds.has(st.id)).length;
-      const pct = Math.min(100, Math.round((userGuessed / line.total) * 100));
+
+      let topTeamName = this.teamName;
+      let maxCount = userGuessed;
+
+      if (this.players) {
+        this.players.forEach(p => {
+          let pCount = 0;
+          if (p.isUser) {
+            pCount = userGuessed;
+          } else if (p.lineProgress && p.lineProgress[line.code] !== undefined) {
+            pCount = p.lineProgress[line.code];
+          }
+          if (pCount > maxCount) {
+            maxCount = pCount;
+            topTeamName = p.name;
+          }
+        });
+      }
+
+      const pct = Math.min(100, Math.round((maxCount / line.total) * 100));
 
       const isCaptured = line.capturedBy !== null;
       let leaderText = `<span>Leading: <strong>None (<5%)</strong></span>`;
@@ -699,7 +733,7 @@ class MRTQuizGame {
       if (isCaptured) {
         leaderText = `<span class="captured-trophy-badge"><i class="fa-solid fa-trophy"></i> Captured by ${line.capturedBy}</span>`;
       } else if (pct >= 5) {
-        leaderText = `<span>Leading: <strong>${this.teamName} (${pct}%)</strong></span>`;
+        leaderText = `<span>Leading: <strong>${topTeamName} (${pct}%)</strong></span>`;
       }
 
       const item = document.createElement("div");
@@ -1416,6 +1450,7 @@ class RoomSyncEngine {
             score: this.game.calculateCurrentScore(),
             members: this.game.teamMembers,
             isGoBig: this.game.isGoBigActive,
+            lineProgress: this.game.calculateLineProgress(),
             senderId: this.myClientId
           });
         });
@@ -1534,8 +1569,10 @@ class RoomSyncEngine {
             player.score = packet.score || 0;
             player.isGoBig = packet.isGoBig || false;
             if (packet.members) player.members = packet.members;
+            if (packet.lineProgress) player.lineProgress = packet.lineProgress;
           }
           this.game.renderLeaderboard();
+          this.game.renderTurfWarDrawer();
 
           if (isNewPlayer && !packet.isReply) {
             this.broadcast({
@@ -1544,6 +1581,7 @@ class RoomSyncEngine {
               score: this.game.calculateCurrentScore(),
               members: this.game.teamMembers,
               isGoBig: this.game.isGoBigActive,
+              lineProgress: this.game.calculateLineProgress(),
               isReply: true
             });
           }
