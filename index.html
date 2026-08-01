@@ -64,8 +64,10 @@
               autocomplete="off" 
               autofocus 
             />
-            <button id="voiceInputBtn" class="btn-voice" title="Speak Station Names (Voice Input)"><i class="fa-solid fa-microphone"></i></button>
-            <button id="clearInputBtn" class="btn-clear"><i class="fa-solid fa-xmark"></i></button>
+            <div class="input-actions-right">
+              <button id="voiceInputBtn" class="btn-voice" type="button" title="Speak Station Names (Voice Input)"><i class="fa-solid fa-microphone"></i></button>
+              <button id="clearInputBtn" class="btn-clear" type="button" title="Clear input"><i class="fa-solid fa-xmark"></i></button>
+            </div>
           </div>
           <div id="feedbackBanner" class="feedback-banner hidden">
             <span id="feedbackText"></span>
@@ -184,14 +186,20 @@
           </div>
         </div>
 
-        <!-- Compressed Action Deck Summary Card -->
+        <!-- Compressed Action Deck Summary Card (With Mobile Inline Grid) -->
         <div class="powerup-deck-compressed-card" id="powerupDeckCard">
           <div class="compressed-deck-header">
             <div>
               <h4><i class="fa-solid fa-bolt-lightning"></i> Action Deck</h4>
               <span id="deckSummaryCountText" class="compressed-deck-sub">0 Claims Available</span>
             </div>
-            <button id="viewDeckBtn" class="btn btn-sm btn-secondary"><i class="fa-solid fa-layer-group"></i> View Cards</button>
+            <button id="viewDeckBtn" class="btn btn-sm btn-secondary desktop-only-btn"><i class="fa-solid fa-layer-group"></i> View Cards</button>
+          </div>
+          <div id="claimEntitlementBannerInline" class="claim-entitlement-banner inactive mobile-only-block">
+            <!-- Dynamic Entitlement Banner on Mobile -->
+          </div>
+          <div class="powerup-cards-grid-inline mobile-only-block" id="powerupDeckInlineGrid">
+            <!-- Rendered dynamically on mobile -->
           </div>
           <div class="exhausted-cards-list-box" id="exhaustedCardsBox">
             <span class="exhausted-title"><i class="fa-solid fa-ban"></i> Exhausted Cards:</span>

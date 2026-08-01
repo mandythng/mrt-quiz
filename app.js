@@ -391,12 +391,22 @@ class MRTQuizGame {
             if (mapPanel) mapPanel.style.display = "flex";
             if (leftPanel) leftPanel.style.display = "flex";
             if (rightPanel) rightPanel.style.display = "none";
-          } else if (target === "cards") {
-            this.showDeckOverviewModal();
-            dockTabs.forEach(t => t.classList.remove("active"));
-            const mapTab = document.getElementById("tabMap");
-            if (mapTab) mapTab.classList.add("active");
-          } else if (target === "leaderboard" || target === "turfwar") {
+          } else if (target === "leaderboard" || target === "turfwar" || target === "cards") {
+            if (rightPanel) rightPanel.style.display = "flex";
+            if (mapPanel) mapPanel.style.display = "none";
+            if (leftPanel) leftPanel.style.display = "none";
+
+            if (target === "turfwar") {
+              const turfCard = document.querySelector(".turfwar-card");
+              if (turfCard) turfCard.scrollIntoView({ behavior: "smooth" });
+            } else if (target === "cards") {
+              const actionCard = document.querySelector("#powerupDeckCard");
+              if (actionCard) actionCard.scrollIntoView({ behavior: "smooth" });
+            } else {
+              const lbCard = document.querySelector(".leaderboard-card");
+              if (lbCard) lbCard.scrollIntoView({ behavior: "smooth" });
+            }
+          }
             if (rightPanel) rightPanel.style.display = "flex";
             if (mapPanel) mapPanel.style.display = "none";
             if (leftPanel) leftPanel.style.display = "none";
@@ -764,6 +774,8 @@ class MRTQuizGame {
     const pending = this.getPendingCardClaims();
     const claimedTotal = this.globalPowerUpDeck.filter(c => c.claimedBy !== null).length;
 
+    this.renderActionDeckInline();
+
     if (pending > 0) {
       this.deckSummaryCountText.textContent = `🎁 ${pending} Claim(s) Available!`;
       this.viewDeckBtn.innerHTML = `<i class="fa-solid fa-gift"></i> Claim Card (${pending})`;
@@ -791,6 +803,57 @@ class MRTQuizGame {
         });
       }
     }
+  }
+
+  renderActionDeckInline(capturedLineName = null) {
+    const inlineGrid = document.getElementById("powerupDeckInlineGrid");
+    const inlineBanner = document.getElementById("claimEntitlementBannerInline");
+    if (!inlineGrid) return;
+
+    const pending = this.getPendingCardClaims();
+
+    if (inlineBanner) {
+      if (pending > 0) {
+        const lineText = capturedLineName ? `🏆 <strong>${capturedLineName}</strong> Captured! ` : "";
+        inlineBanner.className = "claim-entitlement-banner active mobile-only-block";
+        inlineBanner.innerHTML = `${lineText}🎉 YOU HAVE <strong>${pending} CARD CLAIM(S) AVAILABLE</strong>! Select an available card below:`;
+      } else {
+        inlineBanner.className = "claim-entitlement-banner inactive mobile-only-block";
+        inlineBanner.innerHTML = `ℹ️ <strong>0 Card Claims available</strong> (${this.claimedCardsCount} of ${this.earnedCardClaims} claimed). Complete an MRT line to earn a new claim!`;
+      }
+    }
+
+    inlineGrid.innerHTML = "";
+    this.globalPowerUpDeck.forEach(card => {
+      const item = document.createElement("div");
+      const isClaimed = card.claimedBy !== null;
+
+      if (isClaimed) {
+        item.className = "powerup-card-item exhausted";
+        item.innerHTML = `
+          <span class="powerup-card-title">${card.title}</span>
+          <span class="powerup-card-desc">${card.desc}</span>
+          <span class="claimed-badge"><i class="fa-solid fa-ban"></i> EXHAUSTED (${card.claimedBy})</span>
+        `;
+      } else if (pending > 0) {
+        item.className = "powerup-card-item selectable";
+        item.innerHTML = `
+          <span class="powerup-card-title" style="color:#4ade80;">✨ ${card.title}</span>
+          <span class="powerup-card-desc">${card.desc}</span>
+          <button class="btn btn-sm btn-success" style="margin-top:0.4rem;"><i class="fa-solid fa-hand-pointer"></i> Claim Card</button>
+        `;
+        item.addEventListener("click", () => this.claimAndExecuteCard(card));
+      } else {
+        item.className = "powerup-card-item available";
+        item.innerHTML = `
+          <span class="powerup-card-title">${card.title}</span>
+          <span class="powerup-card-desc">${card.desc}</span>
+          <span class="claimed-badge" style="background:rgba(255,255,255,0.05); color:var(--text-secondary); border-color:rgba(255,255,255,0.1);"><i class="fa-solid fa-lock"></i> Unclaimed</span>
+        `;
+      }
+
+      inlineGrid.appendChild(item);
+    });
   }
 
   showDeckOverviewModal(capturedLineName = null) {
