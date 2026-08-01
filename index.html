@@ -64,6 +64,7 @@
               autocomplete="off" 
               autofocus 
             />
+            <button id="voiceInputBtn" class="btn-voice" title="Speak Station Names (Voice Input)"><i class="fa-solid fa-microphone"></i></button>
             <button id="clearInputBtn" class="btn-clear"><i class="fa-solid fa-xmark"></i></button>
           </div>
           <div id="feedbackBanner" class="feedback-banner hidden">
@@ -351,6 +352,26 @@
       <div id="countdownText" class="countdown-text">GET READY!</div>
     </div>
   </div>
+
+  <!-- Fixed Mobile Bottom Dock (< 768px Screens) -->
+  <nav class="mobile-bottom-dock" id="mobileBottomDock">
+    <button class="dock-tab active" data-tab="map" id="tabMap">
+      <i class="fa-solid fa-map-location-dot"></i>
+      <span>Map</span>
+    </button>
+    <button class="dock-tab" data-tab="leaderboard" id="tabLeaderboard">
+      <i class="fa-solid fa-trophy"></i>
+      <span>Rank</span>
+    </button>
+    <button class="dock-tab" data-tab="turfwar" id="tabTurfWar">
+      <i class="fa-solid fa-shield-halved"></i>
+      <span>Turf</span>
+    </button>
+    <button class="dock-tab" data-tab="cards" id="tabCards">
+      <i class="fa-solid fa-bolt"></i>
+      <span>Cards</span>
+    </button>
+  </nav>
 
   <script src="mrt_data.js"></script>
   <script src="app.js"></script>

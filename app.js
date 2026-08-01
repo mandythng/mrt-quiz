@@ -71,6 +71,8 @@ class MRTQuizGame {
     this.initEventListeners();
     this.loadSVGMap();
     this.initAudio();
+    this.initVoiceRecognition();
+    this.initMobileDock();
 
     this.roomSync = new RoomSyncEngine(this);
 
@@ -88,6 +90,7 @@ class MRTQuizGame {
 
   initElements() {
     this.stationInput = document.getElementById("stationInput");
+    this.voiceInputBtn = document.getElementById("voiceInputBtn");
     this.clearInputBtn = document.getElementById("clearInputBtn");
     this.feedbackBanner = document.getElementById("feedbackBanner");
     this.feedbackText = document.getElementById("feedbackText");
@@ -289,6 +292,132 @@ class MRTQuizGame {
       console.error("Error loading SVG map:", err);
       this.svgContainer.innerHTML = `<div class="error-msg">Failed to load SVG map. Please refresh.</div>`;
     }
+  }
+
+  initVoiceRecognition() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      if (this.voiceInputBtn) {
+        this.voiceInputBtn.style.display = "none";
+      }
+      return;
+    }
+
+    this.recognition = new SpeechRecognition();
+    this.recognition.continuous = true;
+    this.recognition.interimResults = true;
+    this.recognition.lang = "en-SG";
+
+    this.recognition.onresult = (event) => {
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        const transcript = event.results[i][0].transcript.trim();
+        if (transcript) {
+          this.handleInput(transcript);
+        }
+      }
+    };
+
+    this.recognition.onerror = (event) => {
+      console.warn("Speech recognition error:", event.error);
+      if (event.error !== "no-speech" && event.error !== "aborted") {
+        this.stopVoiceListening();
+      }
+    };
+
+    this.recognition.onend = () => {
+      if (this.isVoiceListening) {
+        try {
+          this.recognition.start();
+        } catch (e) {}
+      }
+    };
+
+    if (this.voiceInputBtn) {
+      this.voiceInputBtn.addEventListener("click", () => this.toggleVoiceListening());
+    }
+  }
+
+  toggleVoiceListening() {
+    if (this.isVoiceListening) {
+      this.stopVoiceListening();
+    } else {
+      this.startVoiceListening();
+    }
+  }
+
+  startVoiceListening() {
+    if (!this.recognition) {
+      alert("Speech recognition is not supported in this browser. Please try Chrome or Safari.");
+      return;
+    }
+    try {
+      this.isVoiceListening = true;
+      this.recognition.start();
+      if (this.voiceInputBtn) {
+        this.voiceInputBtn.classList.add("listening");
+        this.voiceInputBtn.innerHTML = `<i class="fa-solid fa-microphone-lines pulse"></i>`;
+      }
+      this.showFeedback("🎙️ Voice input active! Speak MRT station names...", true);
+    } catch (err) {
+      console.error("Failed to start speech recognition:", err);
+    }
+  }
+
+  stopVoiceListening() {
+    this.isVoiceListening = false;
+    if (this.recognition) {
+      try { this.recognition.stop(); } catch (e) {}
+    }
+    if (this.voiceInputBtn) {
+      this.voiceInputBtn.classList.remove("listening");
+      this.voiceInputBtn.innerHTML = `<i class="fa-solid fa-microphone"></i>`;
+    }
+  }
+
+  initMobileDock() {
+    const dockTabs = document.querySelectorAll(".dock-tab");
+    const leftPanel = document.querySelector(".left-panel");
+    const mapPanel = document.querySelector(".map-panel");
+    const rightPanel = document.querySelector(".right-panel");
+
+    dockTabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        dockTabs.forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+
+        const target = tab.dataset.tab;
+        if (window.innerWidth <= 768) {
+          if (target === "map") {
+            if (mapPanel) mapPanel.style.display = "flex";
+            if (leftPanel) leftPanel.style.display = "flex";
+            if (rightPanel) rightPanel.style.display = "none";
+          } else if (target === "leaderboard" || target === "turfwar" || target === "cards") {
+            if (rightPanel) rightPanel.style.display = "flex";
+            if (mapPanel) mapPanel.style.display = "none";
+            if (leftPanel) leftPanel.style.display = "none";
+
+            if (target === "turfwar") {
+              const turfCard = document.querySelector(".turfwar-card");
+              if (turfCard) turfCard.scrollIntoView({ behavior: "smooth" });
+            } else if (target === "cards") {
+              const actionCard = document.querySelector(".action-deck-card");
+              if (actionCard) actionCard.scrollIntoView({ behavior: "smooth" });
+            } else {
+              const lbCard = document.querySelector(".leaderboard-card");
+              if (lbCard) lbCard.scrollIntoView({ behavior: "smooth" });
+            }
+          }
+        }
+      });
+    });
+
+    window.addEventListener("resize", () => {
+      if (window.innerWidth > 768) {
+        if (leftPanel) leftPanel.style.display = "";
+        if (mapPanel) mapPanel.style.display = "";
+        if (rightPanel) rightPanel.style.display = "";
+      }
+    });
   }
 
   normalizeInput(text) {

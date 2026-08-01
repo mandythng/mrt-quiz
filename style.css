@@ -1399,3 +1399,143 @@ body {
 .missed-chip { font-size: 0.72rem; padding: 0.2rem 0.5rem; background-color: var(--card-bg); border-radius: 4px; color: var(--text-secondary); border: 1px solid var(--border-color); }
 .missed-chip.lrt { border: 1px solid var(--accent-lrt); color: var(--accent-lrt); }
 .missed-chip.upcoming { border: 1px solid var(--accent-upcoming); color: var(--accent-upcoming); }
+
+
+/* Voice Input Button */
+.btn-voice {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-voice:hover {
+  color: var(--accent-primary);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.btn-voice.listening {
+  color: #ff1744;
+  background-color: rgba(255, 23, 68, 0.15);
+  box-shadow: 0 0 12px rgba(255, 23, 68, 0.4);
+  animation: pulseGlow 1.5s infinite;
+}
+
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 4px rgba(255, 23, 68, 0.4); }
+  50% { box-shadow: 0 0 16px rgba(255, 23, 68, 0.8); }
+  100% { box-shadow: 0 0 4px rgba(255, 23, 68, 0.4); }
+}
+
+/* Mobile Bottom Navigation Dock */
+.mobile-bottom-dock {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background-color: rgba(18, 24, 38, 0.95);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border-color);
+  z-index: 1000;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0 0.5rem;
+}
+
+.dock-tab {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  flex: 1;
+  height: 100%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.dock-tab i {
+  font-size: 1.1rem;
+}
+
+.dock-tab span {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.dock-tab.active,
+.dock-tab:hover {
+  color: var(--accent-primary);
+}
+
+/* RESPONSIVE MOBILE BREAKPOINTS (< 768px) */
+@media (max-width: 768px) {
+  body {
+    padding-bottom: 60px;
+  }
+
+  .navbar {
+    padding: 0.5rem 0.8rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .brand-text h1 {
+    font-size: 1rem;
+  }
+
+  .brand-text .sub-title {
+    display: none;
+  }
+
+  .navbar-actions .room-badge {
+    font-size: 0.72rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .game-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+
+  .left-panel {
+    width: 100%;
+    gap: 0.5rem;
+  }
+
+  .scoring-rules-card,
+  .recent-hits-card {
+    display: none;
+  }
+
+  .map-panel {
+    width: 100%;
+    height: calc(100vh - 260px);
+    min-height: 340px;
+  }
+
+  .right-panel {
+    width: 100%;
+    display: none;
+  }
+
+  .mobile-bottom-dock {
+    display: flex;
+  }
+}
