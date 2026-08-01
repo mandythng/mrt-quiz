@@ -1142,15 +1142,86 @@ class MRTQuizGame {
     if (missed.length === 0) {
       missedList.innerHTML = `<div class="win-msg">🎉 Perfect Score! You guessed all ${this.allStations.length} stations!</div>`;
     } else {
-      missed.forEach(st => {
-        const chip = document.createElement("span");
-        let chipClass = '';
-        if (st.is_lrt) chipClass = 'lrt';
-        else if (st.is_upcoming) chipClass = 'upcoming';
+      const LINE_META = {
+        "NSL": { name: "North-South Line", color: "#e53935", badge: "NSL" },
+        "EWL": { name: "East-West Line", color: "#43a047", badge: "EWL" },
+        "NEL": { name: "North-East Line", color: "#8e24aa", badge: "NEL" },
+        "CCL": { name: "Circle Line", color: "#fb8c00", badge: "CCL" },
+        "DTL": { name: "Downtown Line", color: "#1e88e5", badge: "DTL" },
+        "TEL": { name: "Thomson-East Coast Line", color: "#8d6e63", badge: "TEL" },
+        "JRL": { name: "Jurong Region Line", color: "#00897b", badge: "JRL" },
+        "CRL": { name: "Cross Island Line", color: "#7cb342", badge: "CRL" },
+        "LRT": { name: "LRT Network", color: "#78909c", badge: "LRT" }
+      };
 
-        chip.className = `missed-chip ${chipClass}`;
-        chip.textContent = st.name;
-        missedList.appendChild(chip);
+      const groupedByLine = {};
+      const lineOrder = ["NSL", "EWL", "NEL", "CCL", "DTL", "TEL", "JRL", "CRL", "LRT"];
+
+      missed.forEach(st => {
+        const lineCode = st.line_code || (st.lines && st.lines[0]) || (st.is_lrt ? "LRT" : "OTHER");
+        if (!groupedByLine[lineCode]) groupedByLine[lineCode] = [];
+        groupedByLine[lineCode].push(st);
+      });
+
+      lineOrder.forEach(code => {
+        const stationsInLine = groupedByLine[code];
+        if (!stationsInLine || stationsInLine.length === 0) return;
+
+        const meta = LINE_META[code] || { name: code, color: "#999", badge: code };
+
+        const groupEl = document.createElement("div");
+        groupEl.className = "missed-line-group";
+
+        const headerEl = document.createElement("div");
+        headerEl.className = "missed-line-header";
+        headerEl.style.borderLeftColor = meta.color;
+        headerEl.innerHTML = `<span class="line-badge" style="background-color:${meta.color};">${meta.badge}</span> <span class="line-name-title">${meta.name}</span> <span class="line-missed-count">(${stationsInLine.length} missed)</span>`;
+        groupEl.appendChild(headerEl);
+
+        const chipsWrapper = document.createElement("div");
+        chipsWrapper.className = "missed-chips-wrapper";
+
+        stationsInLine.forEach(st => {
+          const chip = document.createElement("span");
+          let chipClass = "";
+          if (st.is_lrt) chipClass = "lrt";
+          else if (st.is_upcoming) chipClass = "upcoming";
+
+          chip.className = `missed-chip ${chipClass}`;
+          chip.textContent = st.name;
+          chipsWrapper.appendChild(chip);
+        });
+
+        groupEl.appendChild(chipsWrapper);
+        missedList.appendChild(groupEl);
+      });
+
+      Object.keys(groupedByLine).forEach(code => {
+        if (lineOrder.includes(code)) return;
+        const stationsInLine = groupedByLine[code];
+        if (!stationsInLine || stationsInLine.length === 0) return;
+
+        const groupEl = document.createElement("div");
+        groupEl.className = "missed-line-group";
+
+        const headerEl = document.createElement("div");
+        headerEl.className = "missed-line-header";
+        headerEl.style.borderLeftColor = "#999";
+        headerEl.innerHTML = `<span class="line-badge" style="background-color:#999;">${code}</span> <span class="line-name-title">${code}</span> <span class="line-missed-count">(${stationsInLine.length} missed)</span>`;
+        groupEl.appendChild(headerEl);
+
+        const chipsWrapper = document.createElement("div");
+        chipsWrapper.className = "missed-chips-wrapper";
+
+        stationsInLine.forEach(st => {
+          const chip = document.createElement("span");
+          chip.className = `missed-chip ${st.is_lrt ? "lrt" : st.is_upcoming ? "upcoming" : ""}`;
+          chip.textContent = st.name;
+          chipsWrapper.appendChild(chip);
+        });
+
+        groupEl.appendChild(chipsWrapper);
+        missedList.appendChild(groupEl);
       });
     }
 
