@@ -390,11 +390,11 @@ class MRTQuizGame {
         tab.classList.add("active");
 
         const target = tab.dataset.tab;
-        if (window.innerWidth <= 768) {
-          if (target === "cards") {
-            this.showDeckOverviewModal();
-          } else {
-            this.hideDeckOverviewModal();
+        if (target === "cards") {
+          this.showDeckOverviewModal();
+        } else {
+          this.hideDeckOverviewModal();
+          if (window.innerWidth <= 768) {
             if (target === "map") {
               if (mapPanel) mapPanel.style.display = "flex";
               if (leftPanel) leftPanel.style.display = "flex";
@@ -850,6 +850,13 @@ class MRTQuizGame {
 
   hideDeckOverviewModal() {
     this.deckOverviewModal.classList.add("hidden");
+    const cardsTab = document.getElementById("tabCards");
+    if (cardsTab && cardsTab.classList.contains("active")) {
+      const dockTabs = document.querySelectorAll(".dock-tab");
+      dockTabs.forEach(t => t.classList.remove("active"));
+      const mapTab = document.getElementById("tabMap");
+      if (mapTab) mapTab.classList.add("active");
+    }
   }
 
   claimAndExecuteCard(card) {
